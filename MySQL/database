@@ -1,0 +1,244 @@
+-- =============================================
+-- ELECTRICITY BILLING SYSTEM - COMPLETE DATABASE
+-- =============================================
+
+-- 1. CREATE DATABASE AND TABLES
+DROP SCHEMA IF EXISTS `ebs`;
+CREATE SCHEMA `ebs` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `ebs`;
+
+-- Login table for authentication
+CREATE TABLE IF NOT EXISTS `login` (
+  `username` VARCHAR(50) NOT NULL,
+  `password` VARCHAR(50) NOT NULL,
+  PRIMARY KEY (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Customer information table
+CREATE TABLE IF NOT EXISTS `customer` (
+  `name` VARCHAR(100) NOT NULL,
+  `meter_number` VARCHAR(20) NOT NULL,
+  `address` VARCHAR(200) NOT NULL,
+  `state` VARCHAR(50) NOT NULL,
+  `city` VARCHAR(50) NOT NULL,
+  `email` VARCHAR(100) DEFAULT NULL,
+  `phone` VARCHAR(15) NOT NULL,
+  PRIMARY KEY (`meter_number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Tax rates table
+CREATE TABLE IF NOT EXISTS `tax` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `meter_rent` DECIMAL(10,2) DEFAULT 50.00,
+  `service_charge` DECIMAL(10,2) DEFAULT 102.00,
+  `gst` DECIMAL(5,2) DEFAULT 9.00,
+  `fixed_charge` DECIMAL(10,2) DEFAULT 100.00,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Billing records table
+CREATE TABLE IF NOT EXISTS `bill` (
+  `meter_number` VARCHAR(20) NOT NULL,
+  `month` VARCHAR(20) NOT NULL,
+  `units` VARCHAR(10) NOT NULL,
+  `amount` DECIMAL(10,2) NOT NULL,
+  `status` ENUM('Pending', 'Paid') DEFAULT 'Pending',
+  `payment_date` DATE DEFAULT NULL,
+  PRIMARY KEY (`meter_number`, `month`),
+  CONSTRAINT `fk_bill_customer`
+    FOREIGN KEY (`meter_number`)
+    REFERENCES `customer` (`meter_number`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- =============================================
+-- 2. INSERT SAMPLE DATA
+-- =============================================
+
+-- Admin login credentials
+INSERT INTO `login` (`username`, `password`) VALUES 
+('admin', 'admin123');
+
+-- Default tax rates
+INSERT INTO `tax` (`meter_rent`, `service_charge`, `gst`, `fixed_charge`) VALUES 
+(50.00, 102.00, 9.00, 100.00);
+
+-- Original 3 sample customers
+INSERT INTO `customer` (`name`, `meter_number`, `address`, `state`, `city`, `email`, `phone`) VALUES 
+('John Doe', '1001', '123 Main Street', 'California', 'Los Angeles', 'john@example.com', '1234567890'),
+('Jane Smith', '1002', '456 Oak Avenue', 'New York', 'New York', 'jane@example.com', '9876543210'),
+('Robert Johnson', '1003', '789 Pine Road', 'Texas', 'Houston', 'robert@example.com', '5551234567');
+
+-- 20 additional customers with interesting details
+INSERT INTO `customer` (`name`, `meter_number`, `address`, `state`, `city`, `email`, `phone`) VALUES
+('Emma Johnson', '1004', '321 Maple Street', 'California', 'San Francisco', 'emma.j@tech.com', '4155551234'),
+('Michael Chen', '1005', '654 Pine Avenue', 'New York', 'Buffalo', 'michael.chen@finance.com', '7165559876'),
+('Sophia Rodriguez', '1006', '987 Cedar Lane', 'Texas', 'Austin', 'sophia.r@music.net', '5125554567'),
+('William Kim', '1007', '159 Oak Boulevard', 'Florida', 'Miami', 'will.kim@beach.com', '3055557890'),
+('Olivia Martinez', '1008', '753 Elm Court', 'Illinois', 'Chicago', 'olivia.m@art.org', '3125552345'),
+('James Wilson', '1009', '852 Birch Road', 'Washington', 'Seattle', 'james.w@coffee.net', '2065556789'),
+('Ava Thompson', '1010', '369 Willow Way', 'Massachusetts', 'Boston', 'ava.t@education.edu', '6175553456'),
+('Benjamin Davis', '1011', '147 Redwood Drive', 'Colorado', 'Denver', 'ben.d@outdoors.com', '3035559012'),
+('Mia Garcia', '1012', '258 Sequoia Circle', 'Arizona', 'Phoenix', 'mia.g@desert.net', '6025555678'),
+('Elijah Brown', '1013', '963 Aspen Terrace', 'Georgia', 'Atlanta', 'elijah.b@business.com', '4045551234'),
+('Charlotte Lee', '1014', '741 Palm Street', 'North Carolina', 'Charlotte', 'charlotte.l@banking.com', '7045557890'),
+('Daniel Clark', '1015', '852 Magnolia Lane', 'Michigan', 'Detroit', 'daniel.c@auto.net', '3135554567'),
+('Amelia White', '1016', '369 Juniper Avenue', 'Pennsylvania', 'Philadelphia', 'amelia.w@history.org', '2155559012'),
+('Lucas Hall', '1017', '147 Sycamore Road', 'Ohio', 'Columbus', 'lucas.h@sports.net', '6145553456'),
+('Harper Allen', '1018', '258 Dogwood Drive', 'Virginia', 'Richmond', 'harper.a@government.gov', '8045556789'),
+('Alexander Young', '1019', '963 Hickory Court', 'Tennessee', 'Nashville', 'alex.y@music.city', '6155552345'),
+('Evelyn Scott', '1020', '741 Spruce Street', 'Missouri', 'St. Louis', 'evelyn.s@arch.net', '3145558901'),
+('Henry Adams', '1021', '852 Cedar Avenue', 'Minnesota', 'Minneapolis', 'henry.a@lakes.com', '6125555678'),
+('Liam Nelson', '1022', '369 Pine Road', 'Louisiana', 'New Orleans', 'liam.n@jazz.net', '5045551234'),
+('Abigail Carter', '1023', '147 Oak Lane', 'Oregon', 'Portland', 'abigail.c@eco.org', '5035557890');
+
+-- Sample billing records for all customers
+INSERT INTO `bill` (`meter_number`, `month`, `units`, `amount`, `status`, `payment_date`) VALUES 
+-- Original customers
+('1001', 'January', '250', 1850.00, 'Paid', '2023-01-15'),
+('1001', 'February', '300', 2200.00, 'Pending', NULL),
+('1002', 'January', '180', 1326.00, 'Paid', '2023-01-20'),
+('1003', 'January', '420', 3094.00, 'Pending', NULL),
+
+-- New customers
+('1004', 'March', '275', 2050.00, 'Pending', NULL),
+('1005', 'March', '190', 1420.00, 'Pending', NULL),
+('1006', 'March', '420', 3094.00, 'Pending', NULL),
+('1007', 'March', '380', 2810.00, 'Paid', '2023-03-10'),
+('1008', 'March', '210', 1560.00, 'Pending', NULL),
+('1009', 'March', '175', 1312.50, 'Paid', '2023-03-05'),
+('1010', 'March', '290', 2160.00, 'Pending', NULL),
+('1011', 'March', '320', 2370.00, 'Pending', NULL),
+('1012', 'March', '410', 3035.00, 'Paid', '2023-03-15'),
+('1013', 'March', '195', 1462.50, 'Pending', NULL),
+('1014', 'March', '230', 1725.00, 'Pending', NULL),
+('1015', 'March', '265', 1987.50, 'Paid', '2023-03-12'),
+('1016', 'March', '340', 2520.00, 'Pending', NULL),
+('1017', 'March', '280', 2100.00, 'Pending', NULL),
+('1018', 'March', '360', 2670.00, 'Paid', '2023-03-18'),
+('1019', 'March', '310', 2325.00, 'Pending', NULL),
+('1020', 'March', '240', 1800.00, 'Pending', NULL),
+('1021', 'March', '390', 2880.00, 'Paid', '2023-03-20'),
+('1022', 'March', '220', 1650.00, 'Pending', NULL),
+('1023', 'March', '200', 1500.00, 'Pending', NULL);
+
+-- =============================================
+-- 3. STORED PROCEDURES
+-- =============================================
+
+DELIMITER //
+
+-- Procedure to calculate bill with taxes
+CREATE PROCEDURE CalculateBillWithTax(
+    IN p_meter_number VARCHAR(20),
+    IN p_month VARCHAR(20),
+    IN p_units DECIMAL(10,2),
+    OUT p_total_amount DECIMAL(10,2)
+)
+BEGIN
+    DECLARE base_amount DECIMAL(10,2);
+    DECLARE v_meter_rent DECIMAL(10,2);
+    DECLARE v_service_charge DECIMAL(10,2);
+    DECLARE v_fixed_charge DECIMAL(10,2);
+    DECLARE v_gst DECIMAL(5,2);
+    
+    -- Tiered pricing calculation
+    IF p_units <= 100 THEN
+        SET base_amount = p_units * 4.50;
+    ELSEIF p_units <= 200 THEN
+        SET base_amount = 100 * 4.50 + (p_units - 100) * 6.00;
+    ELSE
+        SET base_amount = 100 * 4.50 + 100 * 6.00 + (p_units - 200) * 7.50;
+    END IF;
+    
+    -- Get tax rates
+    SELECT meter_rent, service_charge, fixed_charge, gst 
+    INTO v_meter_rent, v_service_charge, v_fixed_charge, v_gst
+    FROM tax WHERE id = 1;
+    
+    -- Calculate total amount with taxes
+    SET p_total_amount = base_amount + v_meter_rent + v_service_charge + v_fixed_charge;
+    SET p_total_amount = p_total_amount + (p_total_amount * v_gst / 100);
+    
+    -- Insert or update bill record
+    INSERT INTO bill (meter_number, month, units, amount, status)
+    VALUES (p_meter_number, p_month, p_units, p_total_amount, 'Pending')
+    ON DUPLICATE KEY UPDATE 
+        units = p_units,
+        amount = p_total_amount,
+        status = 'Pending',
+        payment_date = NULL;
+END //
+
+-- Procedure to record payment
+CREATE PROCEDURE RecordPayment(
+    IN p_meter_number VARCHAR(20),
+    IN p_month VARCHAR(20)
+)
+BEGIN
+    UPDATE bill 
+    SET status = 'Paid', 
+        payment_date = CURDATE()
+    WHERE meter_number = p_meter_number 
+    AND month = p_month;
+END //
+
+DELIMITER ;
+
+-- =============================================
+-- 4. VIEWS FOR REPORTING
+-- =============================================
+
+-- View for customer bills
+CREATE VIEW CustomerBills AS
+SELECT 
+    c.name,
+    c.meter_number,
+    b.month,
+    b.units,
+    b.amount,
+    b.status,
+    b.payment_date
+FROM customer c
+JOIN bill b ON c.meter_number = b.meter_number
+ORDER BY c.name, b.month DESC;
+
+-- View for revenue report
+CREATE VIEW RevenueReport AS
+SELECT 
+    month,
+    COUNT(*) AS total_bills,
+    SUM(amount) AS total_amount,
+    SUM(CASE WHEN status = 'Paid' THEN amount ELSE 0 END) AS paid_amount,
+    SUM(CASE WHEN status = 'Pending' THEN amount ELSE 0 END) AS pending_amount
+FROM bill
+GROUP BY month
+ORDER BY month DESC;
+
+-- =============================================
+-- 5. VERIFICATION QUERIES
+-- =============================================
+
+-- Verify table creation
+SHOW TABLES;
+
+-- Check table structures
+DESCRIBE `login`;
+DESCRIBE `customer`;
+DESCRIBE `tax`;
+DESCRIBE `bill`;
+
+-- View all customers
+SELECT * FROM customer ORDER BY meter_number;
+
+-- View all bills
+SELECT * FROM bill ORDER BY meter_number, month;
+
+-- Test the stored procedure
+CALL CalculateBillWithTax('1001', 'April', 350, @total);
+SELECT @total AS 'Total Amount for April';
+
+-- Test the views
+SELECT * FROM CustomerBills LIMIT 10;
+SELECT * FROM RevenueReport;
